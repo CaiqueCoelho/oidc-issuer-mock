@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/generate-issuers.mjs && vite build",
     "preview": "vite preview",
-    "generate": "node scripts/generate-issuers.mjs"
+    "generate": "node scripts/generate-issuers.mjs",
+    "deploy": "npm run build && firebase deploy"
   },
   "dependencies": {
     "react": "^18.3.1",
