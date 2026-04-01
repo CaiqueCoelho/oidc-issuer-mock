@@ -1,0 +1,15 @@
+{
+  "issuer": "https://oidc-issuer.web.app/80af192a-f5c9-4599-b8e9-3b41f5864f92",
+  "authorization_endpoint": "https://oidc-issuer.web.app/80af192a-f5c9-4599-b8e9-3b41f5864f92/authorize",
+  "token_endpoint": "https://oidc-issuer.web.app/80af192a-f5c9-4599-b8e9-3b41f5864f92/token",
+  "jwks_uri": "https://oidc-issuer.web.app/80af192a-f5c9-4599-b8e9-3b41f5864f92/jwks.json",
+  "response_types_supported": [
+    "code"
+  ],
+  "grant_types_supported": [
+    "authorization_code"
+  ],
+  "token_endpoint_auth_methods_supported": [
+    "client_secret_basic"
+  ]
+}
