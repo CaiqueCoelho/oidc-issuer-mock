@@ -14,8 +14,9 @@ const App: React.FC = () => {
   const [copyArrayState, setCopyArrayState] = useState<'idle' | 'copied' | 'error'>('idle');
   const [copyOAuthWithPathPlainState, setCopyOAuthWithPathPlainState] = useState<'idle' | 'copied' | 'error'>('idle');
   const [copyOAuthWithPathArrayState, setCopyOAuthWithPathArrayState] = useState<'idle' | 'copied' | 'error'>('idle');
-  const [copyOAuthPlainState, setCopyOAuthPlainState] = useState<'idle' | 'copied' | 'error'>('idle');
-  const [copyOAuthArrayState, setCopyOAuthArrayState] = useState<'idle' | 'copied' | 'error'>('idle');
+  const [oauthPlainIssuers, setOauthPlainIssuers] = useState<{ uuid: string }[]>([]);
+  const [copyOAuthPlainIssuerPlainState, setCopyOAuthPlainIssuerPlainState] = useState<'idle' | 'copied' | 'error'>('idle');
+  const [copyOAuthPlainIssuerArrayState, setCopyOAuthPlainIssuerArrayState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   useEffect(() => {
     fetch('/mock-issuers.json')
@@ -29,6 +30,11 @@ const App: React.FC = () => {
       .catch(() => {
         setMockIssuers([]);
       });
+
+    fetch('/mock-oauth-issuers.json')
+      .then((res) => res.json())
+      .then((data: { uuid: string }[]) => setOauthPlainIssuers(data))
+      .catch(() => setOauthPlainIssuers([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -57,13 +63,14 @@ const App: React.FC = () => {
       : '[]';
 
   const oauthPlainIssuerList =
-    mockIssuers.length > 0
-      ? mockIssuers.map((entry) => `${baseUrl}/${entry.uuid}`).join('\n')
+    oauthPlainIssuers.length > 0
+      ? oauthPlainIssuers.map((entry) => `${baseUrl}/${entry.uuid}`).join('\n')
       : '';
   const oauthIssuerArrayList =
-    mockIssuers.length > 0
-      ? `[\n${mockIssuers.map((entry) => `  "${baseUrl}/${entry.uuid}"`).join(',\n')}\n]`
+    oauthPlainIssuers.length > 0
+      ? `[\n${oauthPlainIssuers.map((entry) => `  "${baseUrl}/${entry.uuid}"`).join(',\n')}\n]`
       : '[]';
+  const oauthPlainCopyDisabled = oauthPlainIssuers.length === 0;
 
   const handleCopy = async (
     text: string,
@@ -190,16 +197,21 @@ const App: React.FC = () => {
       <section className="card">
         <h2>Mock Issuers for OAuth Authorization Server</h2>
         <p>
-          Use these issuer URIs when configuring <code>OAUTH_AUTHORIZATION_SERVER</code>. The
-          server metadata is served at{' '}
-          <code>{'<issuer>/.well-known/oauth-authorization-server'}</code>.
+          Use these issuer URIs when configuring <code>OAUTH_AUTHORIZATION_SERVER</code>. Two
+          discovery URL patterns are supported —{' '}
+          <strong>append style</strong> (<code>{'<issuer>/.well-known/oauth-authorization-server'}</code>)
+          and{' '}
+          <strong>RFC 8414 insertion style</strong> (<code>{'<host>/.well-known/oauth-authorization-server/<issuer-path>'}</code>).
+          See each section below for the exact URLs.
         </p>
 
         <h3>With path (<code>/oauth2/default</code>)</h3>
         <p>
           Issuer format: <code>{`${baseUrl}/{UUID}/oauth2/default`}</code>
           <br />
-          Discovery: <code>{`${baseUrl}/{UUID}/oauth2/default/.well-known/oauth-authorization-server`}</code>
+          Discovery (append style): <code>{`${baseUrl}/{UUID}/oauth2/default/.well-known/oauth-authorization-server`}</code>
+          <br />
+          Discovery (RFC 8414 insertion style): <code>{`${baseUrl}/.well-known/oauth-authorization-server/{UUID}/oauth2/default`}</code>
         </p>
         <div className="pre-gen-actions">
           <button
@@ -254,30 +266,32 @@ const App: React.FC = () => {
         <p>
           Issuer format: <code>{`${baseUrl}/{UUID}`}</code>
           <br />
-          Discovery: <code>{`${baseUrl}/{UUID}/.well-known/oauth-authorization-server`}</code>
+          Discovery (append style): <code>{`${baseUrl}/{UUID}/.well-known/oauth-authorization-server`}</code>
+          <br />
+          Discovery (RFC 8414 insertion style): <code>{`${baseUrl}/.well-known/oauth-authorization-server/{UUID}`}</code>
         </p>
         <div className="pre-gen-actions">
           <button
             className="button secondary"
             type="button"
-            onClick={() => handleCopy(oauthPlainIssuerList, setCopyOAuthPlainState)}
-            disabled={copyDisabled}
+            onClick={() => handleCopy(oauthPlainIssuerList, setCopyOAuthPlainIssuerPlainState)}
+            disabled={oauthPlainCopyDisabled}
           >
-            {copyOAuthPlainState === 'copied'
+            {copyOAuthPlainIssuerPlainState === 'copied'
               ? 'Plain list copied!'
-              : copyOAuthPlainState === 'error'
+              : copyOAuthPlainIssuerPlainState === 'error'
               ? 'Copy failed'
               : 'Copy plain list'}
           </button>
           <button
             className="button secondary"
             type="button"
-            onClick={() => handleCopy(oauthIssuerArrayList, setCopyOAuthArrayState)}
-            disabled={copyDisabled}
+            onClick={() => handleCopy(oauthIssuerArrayList, setCopyOAuthPlainIssuerArrayState)}
+            disabled={oauthPlainCopyDisabled}
           >
-            {copyOAuthArrayState === 'copied'
+            {copyOAuthPlainIssuerArrayState === 'copied'
               ? 'Array copied!'
-              : copyOAuthArrayState === 'error'
+              : copyOAuthPlainIssuerArrayState === 'error'
               ? 'Copy failed'
               : 'Copy JSON array'}
           </button>
@@ -289,7 +303,7 @@ const App: React.FC = () => {
               className="uuid-list"
               readOnly
               value={oauthPlainIssuerList}
-              rows={Math.min(mockIssuers.length || 4, 12)}
+              rows={Math.min(oauthPlainIssuers.length || 4, 12)}
               placeholder="Loading issuers..."
             />
           </label>
@@ -299,7 +313,7 @@ const App: React.FC = () => {
               className="uuid-list"
               readOnly
               value={oauthIssuerArrayList}
-              rows={Math.min(mockIssuers.length || 4, 12)}
+              rows={Math.min(oauthPlainIssuers.length || 4, 12)}
               placeholder='Loading array...'
             />
           </label>

@@ -118,6 +118,27 @@ function writeOAuthAuthServerWithPathConfig(uuid) {
   writeFileSync(filePath, JSON.stringify(config, null, 2));
 }
 
+// RFC 8414 insertion-style: /.well-known/oauth-authorization-server/{uuid}/oauth2/default
+// This is what systems using RFC 8414 "insertion" will call when OAUTH_AUTHORIZATION_SERVER
+// is set to https://host/{uuid}/oauth2/default
+function writeRfc8414OAuthAuthServerWithPathConfig(uuid) {
+  const issuer = `${BASE_URL}/${uuid}/oauth2/default`;
+  const parentDir = join(publicDir, '.well-known', 'oauth-authorization-server', uuid, 'oauth2');
+  mkdirSync(parentDir, { recursive: true });
+
+  const config = {
+    issuer,
+    authorization_endpoint: `${issuer}/v1/authorize`,
+    token_endpoint: `${issuer}/v1/token`,
+    jwks_uri: `${BASE_URL}/${uuid}/jwks.json`,
+    response_types_supported: ['code'],
+    grant_types_supported: ['authorization_code'],
+    token_endpoint_auth_methods_supported: ['client_secret_basic']
+  };
+
+  writeFileSync(join(parentDir, 'default'), JSON.stringify(config, null, 2));
+}
+
 function cleanPreviousFiles(knownUuids) {
   // Remove directories for UUIDs that no longer exist in the list
   const entries = knownUuids.map((entry) => entry.uuid);
@@ -148,6 +169,7 @@ function main() {
     writeJwks(uuid);
     writeOAuthAuthServerConfig(uuid);
     writeOAuthAuthServerWithPathConfig(uuid);
+    writeRfc8414OAuthAuthServerWithPathConfig(uuid);
   }
 
   writeFileSync(issuersListPath, JSON.stringify(issuers, null, 2));
