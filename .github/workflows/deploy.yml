@@ -26,4 +26,5 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
-          projectId: oidc-issuer
+          projectId: dosediarianews
+          target: oidc-issuer
