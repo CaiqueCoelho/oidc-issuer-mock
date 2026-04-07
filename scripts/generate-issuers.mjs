@@ -80,10 +80,12 @@ function writeJwks(uuid) {
   writeFileSync(filePath, JSON.stringify(jwks, null, 2));
 }
 
-function writeOAuthAuthServerConfig(uuid) {
-  const issuer = `${BASE_URL}/${uuid}`;
-  const configDir = join(publicDir, uuid, '.well-known');
-  mkdirSync(configDir, { recursive: true });
+function writeGlobalOAuthAuthServerConfig() {
+  const issuer = `${BASE_URL}/oauth2/default`;
+
+  // Discovery document at /.well-known/oauth-authorization-server/oauth2/default
+  const discoveryDir = join(publicDir, '.well-known', 'oauth-authorization-server', 'oauth2');
+  mkdirSync(discoveryDir, { recursive: true });
 
   const config = {
     issuer,
@@ -95,48 +97,26 @@ function writeOAuthAuthServerConfig(uuid) {
     token_endpoint_auth_methods_supported: ['client_secret_basic']
   };
 
-  const filePath = join(configDir, 'oauth-authorization-server');
-  writeFileSync(filePath, JSON.stringify(config, null, 2));
-}
+  writeFileSync(join(discoveryDir, 'default'), JSON.stringify(config, null, 2));
 
-function writeOAuthAuthServerWithPathConfig(uuid) {
-  const issuer = `${BASE_URL}/${uuid}/oauth2/default`;
-  const configDir = join(publicDir, uuid, 'oauth2', 'default', '.well-known');
-  mkdirSync(configDir, { recursive: true });
+  // JWKS at /oauth2/default/jwks.json
+  const jwksDir = join(publicDir, 'oauth2', 'default');
+  mkdirSync(jwksDir, { recursive: true });
 
-  const config = {
-    issuer,
-    authorization_endpoint: `${issuer}/authorize`,
-    token_endpoint: `${issuer}/token`,
-    jwks_uri: `${BASE_URL}/${uuid}/jwks.json`,
-    response_types_supported: ['code'],
-    grant_types_supported: ['authorization_code'],
-    token_endpoint_auth_methods_supported: ['client_secret_basic']
+  const jwks = {
+    keys: [
+      {
+        kty: 'RSA',
+        use: 'sig',
+        kid: 'mock-key-1',
+        alg: 'RS256',
+        n: 'sXch6q9-rZy9kI3Uo6IYyT6PqB6cav7Sb1ZKo7Pacpdrz93y5ZL3qYqAH-0iBJx4XPzI1NYiK4l5Y1_JlP9dVN0ZI7f1weTlQ5N0c1u8M9j7s1G5gcnYpS4KqvByVkRnb1-RH-mDpS4F88nF8FgjXr5v7r_Qd_2sO9Y7D3L5yH3',
+        e: 'AQAB'
+      }
+    ]
   };
 
-  const filePath = join(configDir, 'oauth-authorization-server');
-  writeFileSync(filePath, JSON.stringify(config, null, 2));
-}
-
-// RFC 8414 insertion-style: /.well-known/oauth-authorization-server/{uuid}/oauth2/default
-// This is what systems using RFC 8414 "insertion" will call when OAUTH_AUTHORIZATION_SERVER
-// is set to https://host/{uuid}/oauth2/default
-function writeRfc8414OAuthAuthServerWithPathConfig(uuid) {
-  const issuer = `${BASE_URL}/${uuid}/oauth2/default`;
-  const parentDir = join(publicDir, '.well-known', 'oauth-authorization-server', uuid, 'oauth2');
-  mkdirSync(parentDir, { recursive: true });
-
-  const config = {
-    issuer,
-    authorization_endpoint: `${issuer}/v1/authorize`,
-    token_endpoint: `${issuer}/v1/token`,
-    jwks_uri: `${BASE_URL}/${uuid}/jwks.json`,
-    response_types_supported: ['code'],
-    grant_types_supported: ['authorization_code'],
-    token_endpoint_auth_methods_supported: ['client_secret_basic']
-  };
-
-  writeFileSync(join(parentDir, 'default'), JSON.stringify(config, null, 2));
+  writeFileSync(join(jwksDir, 'jwks.json'), JSON.stringify(jwks, null, 2));
 }
 
 function cleanPreviousFiles(knownUuids) {
@@ -156,6 +136,10 @@ function cleanPreviousFiles(knownUuids) {
       rmSync(join(publicDir, dir.name), { recursive: true, force: true });
     }
   }
+
+  // Clean RFC 8414 style paths under .well-known/oauth-authorization-server/
+  const rfc8414Dir = join(publicDir, '.well-known', 'oauth-authorization-server');
+  rmSync(rfc8414Dir, { recursive: true, force: true });
 }
 
 function main() {
@@ -167,10 +151,10 @@ function main() {
   for (const { uuid } of issuers) {
     writeOpenIdConfig(uuid);
     writeJwks(uuid);
-    writeOAuthAuthServerConfig(uuid);
-    writeOAuthAuthServerWithPathConfig(uuid);
-    writeRfc8414OAuthAuthServerWithPathConfig(uuid);
   }
+
+  // Single global OAuth Authorization Server endpoint (Okta-style)
+  writeGlobalOAuthAuthServerConfig();
 
   writeFileSync(issuersListPath, JSON.stringify(issuers, null, 2));
 
