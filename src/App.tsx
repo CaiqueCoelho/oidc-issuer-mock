@@ -72,7 +72,7 @@ const App: React.FC = () => {
       </p>
 
       <section className="card">
-        <h2>Configure UUID</h2>
+        <h2>Mock OIDC Issuer UUID</h2>
         <label className="label">
           UUID (path):
           <input
