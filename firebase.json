@@ -9,6 +9,19 @@
       ],
       "headers": [
         {
+          "source": "/nosjon/.well-known/openid-configuration",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=UTF-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-store"
+            }
+          ]
+        },
+        {
           "source": "/**/.well-known/oauth-authorization-server",
           "headers": [
             {

@@ -14,6 +14,7 @@ const App: React.FC = () => {
   const [copyArrayState, setCopyArrayState] = useState<'idle' | 'copied' | 'error'>('idle');
   const [copyOAuthIssuerState, setCopyOAuthIssuerState] = useState<'idle' | 'copied' | 'error'>('idle');
   const [copyOAuthDiscoveryState, setCopyOAuthDiscoveryState] = useState<'idle' | 'copied' | 'error'>('idle');
+  const [copyNosjonState, setCopyNosjonState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   useEffect(() => {
     fetch('/mock-issuers.json')
@@ -48,6 +49,7 @@ const App: React.FC = () => {
 
   const oauthIssuerUrl = `${baseUrl}/oauth2/default`;
   const oauthDiscoveryUrl = `${baseUrl}/.well-known/oauth-authorization-server/oauth2/default`;
+  const nosjonDiscoveryUrl = `${baseUrl}/nosjon/.well-known/openid-configuration`;
 
   const handleCopy = async (
     text: string,
@@ -216,6 +218,37 @@ const App: React.FC = () => {
         <p className="hint">
           Similar to <code>https://dev-74305991.okta.com/oauth2/default</code> — use this
           issuer URL wherever your app expects an OAuth Authorization Server.
+        </p>
+      </section>
+
+      <section className="card">
+        <h2>Non-JSON Discovery (for negative testing)</h2>
+        <p>
+          A dedicated endpoint that returns an <strong>HTML page instead of JSON</strong>
+          (served with <code>Content-Type: text/html; charset=UTF-8</code>). Use it to
+          verify that your backend correctly rejects discovery responses whose content
+          type is not <code>application/json</code>.
+        </p>
+        <ul>
+          <li>
+            <strong>Discovery (HTML):</strong>{' '}
+            <code>{nosjonDiscoveryUrl}</code>{' '}
+            <button
+              className="button secondary small"
+              type="button"
+              onClick={() => handleCopy(nosjonDiscoveryUrl, setCopyNosjonState)}
+            >
+              {copyNosjonState === 'copied'
+                ? 'Copied!'
+                : copyNosjonState === 'error'
+                ? 'Failed'
+                : 'Copy'}
+            </button>
+          </li>
+        </ul>
+        <p className="hint">
+          Expected behavior: a backend that parses the discovery document as JSON should
+          fail (parse error or content-type check) when fetching this URL.
         </p>
       </section>
 
