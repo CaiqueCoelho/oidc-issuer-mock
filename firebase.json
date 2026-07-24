@@ -9,19 +9,6 @@
       ],
       "headers": [
         {
-          "source": "/nosjon/.well-known/openid-configuration",
-          "headers": [
-            {
-              "key": "Content-Type",
-              "value": "text/html; charset=UTF-8"
-            },
-            {
-              "key": "Cache-Control",
-              "value": "no-store"
-            }
-          ]
-        },
-        {
           "source": "/**/.well-known/oauth-authorization-server",
           "headers": [
             {
@@ -92,6 +79,32 @@
             {
               "key": "Content-Type",
               "value": "application/json"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-store"
+            }
+          ]
+        },
+        {
+          "source": "/nosjon/.well-known/openid-configuration",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=UTF-8"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-store"
+            }
+          ]
+        },
+        {
+          "source": "/catls-test-root.crl",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/pkix-crl"
             },
             {
               "key": "Cache-Control",
